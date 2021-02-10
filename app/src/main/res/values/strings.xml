@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Lab_03</string>
+    <string name="app_name">Lab_04</string>
     <string name="score">Score:\u0020</string>
     <string name="t">True</string>
     <string name="f">False</string>
@@ -10,6 +10,7 @@
     <string name="question5">Nemo is a clown fish</string>
     <string name="correct_toast">Your knowledge is undoubtedly top notch!</string>
     <string name="incorrect_toast">You must consult the elders for additional training.</string>
+    <string name="cheat_toast">"Cheaters never prosper."</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
     <string name="cheat">Are you really sure you want to do this?</string>

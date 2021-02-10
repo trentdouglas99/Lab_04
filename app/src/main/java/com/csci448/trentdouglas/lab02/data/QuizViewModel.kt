@@ -45,6 +45,7 @@ class QuizViewModel(private var currentQuestionIndex: Int, private var score: In
         get() = currentQuestion.isAnswerTrue
 
 
+
     fun isAnswerCorrect(answer: Boolean): Boolean{
         if (answer == currentQuestion.isAnswerTrue){
             score += 1

@@ -1,5 +1,6 @@
 package com.csci448.trentdouglas.lab02.ui.quiz
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import com.csci448.trentdouglas.lab02.R
+import com.csci448.trentdouglas.lab02.data.Question
 import com.csci448.trentdouglas.lab02.data.QuizViewModel
 import com.csci448.trentdouglas.lab02.data.QuizViewModelFactory
 import com.csci448.trentdouglas.lab02.databinding.ActivityQuizBinding
@@ -16,6 +18,9 @@ class QuizActivity : AppCompatActivity() {
         private const val LOG_TAG = "448.QuizActivity"
         private const val KEY_INDEX = "index"
         private const val KEY_SCORE = "score"
+        private const val KEY_CHEATED = "cheated"
+        private const val KEY_CHEATED_ARRAY = "cheatedArray"
+        private const val REQUEST_CODE_CHEAT = 0
     }
 
     override fun onSaveInstanceState(savedInstanceState: Bundle) {
@@ -23,12 +28,16 @@ class QuizActivity : AppCompatActivity() {
         Log.d(LOG_TAG, "onSaveInstanceState")
         savedInstanceState.putInt(KEY_INDEX, quizViewModel.currentIndex)
         savedInstanceState.putInt(KEY_SCORE, quizViewModel.currentScore)
+        savedInstanceState.putBoolean(KEY_CHEATED, isCheater)
+        savedInstanceState.putBooleanArray(KEY_CHEATED_ARRAY, cheatedList)
+
+
     }
 
-
+    private var cheatedList = BooleanArray(5)
     private lateinit var quizViewModel: QuizViewModel
-
     private lateinit var binding: ActivityQuizBinding
+    private var isCheater = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(LOG_TAG, "onCreate() called")
@@ -37,6 +46,12 @@ class QuizActivity : AppCompatActivity() {
         val currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0) ?: 0
 
         val currentScore = savedInstanceState?.getInt(KEY_SCORE, 0) ?: 0
+
+        isCheater = savedInstanceState?.getBoolean(KEY_CHEATED, false) ?: false
+        if (savedInstanceState != null) {
+            cheatedList = savedInstanceState.getBooleanArray(KEY_CHEATED_ARRAY) ?: BooleanArray(5)
+        }
+
 
 
         val factory = QuizViewModelFactory(currentIndex, currentScore) // start with the first question and no score
@@ -97,31 +112,57 @@ class QuizActivity : AppCompatActivity() {
         //2. Set the text of the question TextView (question_text_view)
 
         setCurrentScoreText()
-
+        isCheater = false
         binding.questionTextView.text = getString( quizViewModel.currentQuestionTextId )
 
     }
 
     private fun setCurrentScoreText() {
         binding.scoreTextView.text = quizViewModel.currentScore.toString()
+
+
     }
 
     private fun checkAnswer(answer: Boolean){
-        if(quizViewModel.isAnswerCorrect(answer)){
-            Toast.makeText(baseContext, R.string.correct_toast, Toast.LENGTH_SHORT).show()
-            setCurrentScoreText()
+
+        if(cheatedList[quizViewModel.currentIndex]){
+            Toast.makeText(baseContext, R.string.cheat_toast, Toast.LENGTH_SHORT).show()
+
         }
-        else{
-            Toast.makeText(baseContext, R.string.incorrect_toast, Toast.LENGTH_SHORT).show()
+        else {
+            if (isCheater) {
+                Toast.makeText(baseContext, R.string.cheat_toast, Toast.LENGTH_SHORT).show()
+            } else if (quizViewModel.isAnswerCorrect(answer)) {
+
+                Toast.makeText(baseContext, R.string.correct_toast, Toast.LENGTH_SHORT).show()
+                setCurrentScoreText()
+
+            } else {
+                Toast.makeText(baseContext, R.string.incorrect_toast, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
 
     private fun launchCheat(){
-        val intent = CheatActivity.createIntent(baseContext, quizViewModel.currentQuestionAnswer )
 
-        startActivity(intent)
 
+        val cheatIntent=CheatActivity.createIntent(baseContext, quizViewModel.currentQuestionAnswer)
+        startActivityForResult(cheatIntent, REQUEST_CODE_CHEAT)
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode!= Activity.RESULT_OK){
+            return
+        }
+        if(requestCode == REQUEST_CODE_CHEAT){
+            if(data == null) return
+            isCheater = CheatActivity.didUserCheat(data)
+            cheatedList[quizViewModel.currentIndex] = true
+
+        }
     }
 
 }
