@@ -39,8 +39,6 @@ class QuizActivity : AppCompatActivity() {
         val currentScore = savedInstanceState?.getInt(KEY_SCORE, 0) ?: 0
 
 
-
-
         val factory = QuizViewModelFactory(currentIndex, currentScore) // start with the first question and no score
         quizViewModel = ViewModelProvider(this@QuizActivity, factory).get(QuizViewModel::class.java)
 
@@ -120,7 +118,8 @@ class QuizActivity : AppCompatActivity() {
 
 
     private fun launchCheat(){
-        val intent = Intent(baseContext, CheatActivity::class.java)
+        val intent = CheatActivity.createIntent(baseContext, quizViewModel.currentQuestionAnswer )
+
         startActivity(intent)
 
     }
